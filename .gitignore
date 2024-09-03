@@ -13,7 +13,6 @@ poetry.lock
 
 # Jupyter Notebook
 .ipynb_checkpoints/
-*.ipynb
 
 # VSCode
 .vscode/
@@ -25,7 +24,6 @@ poetry.lock
 *.log
 
 # Miscellaneous
-*.csv
 *.sqlite
 *.db
 
