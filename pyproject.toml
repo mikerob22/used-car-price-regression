@@ -12,6 +12,7 @@ numpy = "^2.1.0"
 pandas = "^2.2.2"
 seaborn = "^0.13.2"
 ipykernel = "^6.29.5"
+category-encoders = "^2.6.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2"

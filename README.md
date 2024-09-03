@@ -1,14 +1,18 @@
 # Used-Car-Price-Regression
 
-This project involves predicting used car prices over time and will be submitted into a Kaggle Competition. This project also focusearning how to work with time series data.
+This project involves predicting used car prices over time and will be submitted into a Kaggle Competition.
 
 ### ABOUT YOUR DATA
 
-Where did you get it?
-Do you think you have enough?
-How much data did you start with (rows, columns, size) and how much did you use to model?
-Do you think you have the RIGHT data?
-How could your dataset be improved?
+**Where did you get it?**
+https://www.kaggle.com/competitions/playground-series-s4e9/overview
+
+**Do you think you have enough?**
+Yes, there are 180,000+ rows in this dataset.
+
+**How much data did you start with (rows, columns, size) and how much did you use to model?**
+**Do you think you have the RIGHT data?**
+**How could your dataset be improved?**
 
 
 ### FEATURE ENGINEERING AND DIMENSIONALITY STRATEGY

@@ -4,9 +4,10 @@ from sklearn.linear_model import LinearRegression, ElasticNet
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
-train_data = pd.read_csv('../../data/processed/train_data_processed.csv')
-train_labels = pd.read_csv('../../data/processed/train_labels_processed.csv')
+train_data = pd.read_csv('data/processed/train_data_processed_tar.csv', index_col=False)
+train_labels = pd.read_csv('data/processed/train_labels_processed_tar.csv', index_col=False)
 
+# train_data.drop('index', axis=1, inplace=True)
 train_labels = train_labels['price'] 
 
 
