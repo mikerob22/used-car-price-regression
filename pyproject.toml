@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "Used-Car-Price-Regression"
+version = "0.1.0"
+description = "This project involves predicting used car prices and will be submitted into a Kaggle Competition."
+authors = ["Michael Roberts <mikey.rob222@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+scikit-learn = "^1.5.1"
+matplotlib = "^3.9.2"
+numpy = "^2.1.0"
+pandas = "^2.2.2"
+seaborn = "^0.13.2"
+ipykernel = "^6.29.5"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
