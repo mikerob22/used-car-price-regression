@@ -1,11 +1,12 @@
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression, ElasticNet
+import statsmodels.api as sm
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
-train_data = pd.read_csv('data/processed/train_data_processed_tar.csv', index_col=False)
-train_labels = pd.read_csv('data/processed/train_labels_processed_tar.csv', index_col=False)
+train_data = pd.read_csv('data/processed/baseline_train_data_processed.csv', index_col=False)
+train_labels = pd.read_csv('data/processed/baseline_train_labels_processed.csv', index_col=False)
 
 # train_data.drop('index', axis=1, inplace=True)
 train_labels = train_labels['price'] 
@@ -13,12 +14,14 @@ train_labels = train_labels['price']
 
 ### BASELINE LINEAR REGRESSION MODEL ###
 def linear_reg_model():
+     # Add a constant to the model (the intercept term)
+    train_data_with_const = sm.add_constant(train_data)
+
     # Initialize and train the model
-    model = LinearRegression()
-    model.fit(train_data, train_labels)
+    model = sm.OLS(train_labels, train_data_with_const).fit()
 
     # Make predictions
-    y_pred = model.predict(train_data)
+    y_pred = model.predict(train_data_with_const)
 
     # Evaluate the model
     mse = mean_squared_error(train_labels, y_pred)
@@ -30,6 +33,14 @@ def linear_reg_model():
     print(f"Root Mean Squared Error: {rmse}")
     print(f"Mean Absolute Error: {mae}")
     print(f"r2: {r2}")
+
+    # Print the summary of the OLS regression results
+    summary = model.summary()
+    print(summary)
+
+    # Save the summary to a text file
+    with open('OLS_Regression_Summary.txt', 'w') as file:
+        file.write(summary.as_text())
 
 
 ### ELASTIC NET REGRESSION MODEL W/ HYPERPARAMETER TUNING ###
