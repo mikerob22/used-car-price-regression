@@ -1,4 +1,5 @@
 import re
+import numpy as np
 
 # Define regex patterns to extract Horsepower (HP) and engine size (L)
 hp_pattern = re.compile(r'(\d+(\.\d+)?)HP')
@@ -27,13 +28,14 @@ def luxury_brands_binary(data):
     return None
 
 
+
 def feature_engineering(data):
 
     data['horsepower'] = data['engine'].apply(extract_hp)
     data['engine_size'] = data['engine'].apply(extract_engine_size)
     luxury_brands_binary(data)
     data["car_age"] = 2024 - data["model_year"]
-    data['mileage_per_year'] = data['milage'] / data['car_age']
+    data['mileage_per_year'] = np.where(data['car_age'] == 0, data['milage'], data['milage'] / data['car_age'])
     data['power_to_weight_ratio'] = data['horsepower'] / data['engine_size']
 
     return data

@@ -3,8 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
 from src.features.feature_engineering import feature_engineering
 from category_encoders import TargetEncoder
+
 
 
 def load_data(filepath):
@@ -22,10 +25,45 @@ def handle_missing_values(data):
     data.dropna(subset=['fuel_type', 'accident'], inplace=True)
 
 
+def impute_feature_engineered(data):
+    # Initialize Iterative Imputer
+    imputer = IterativeImputer(max_iter=10, random_state=42)
+
+    # Apply imputation only on specified columns
+    columns_to_impute = ['horsepower', 'engine_size', 'power_to_weight_ratio']
+    data[columns_to_impute] = imputer.fit_transform(data[columns_to_impute])
+
+
+def onehotencode_columns(data, columns):
+    """
+    One-hot encodes the specified columns of the DataFrame.
+
+    Parameters:
+    - data: pandas DataFrame
+    - columns: list of column names to one-hot encode
+
+    Returns:
+    - pandas DataFrame with one-hot encoded columns
+    """
+    
+    # Initialize the OneHotEncoder
+    encoder = OneHotEncoder(sparse_output=False, drop='first')  # drop='first' to avoid multicollinearity
+    
+    # Fit-transform the columns and create a new DataFrame
+    encoded_cols = encoder.fit_transform(data[columns])
+    encoded_df = pd.DataFrame(encoded_cols, columns=encoder.get_feature_names_out(columns))
+    
+    # Concatenate the original DataFrame with the encoded DataFrame
+    data = data.drop(columns, axis=1)  # Drop the original columns
+    onehot_encoded_df = pd.concat([data.reset_index(drop=True), encoded_df], axis=1)
+
+    return onehot_encoded_df
+
+
 def encode_categorical_values(data):
 
     # List of features to apply frequency or target encoding
-    features_to_encode = ['brand', 'model', 'engine', 'transmission', 'ext_col', 'int_col']
+    features_to_encode = ['brand', 'model', 'engine', 'ext_col', 'int_col']
 
     '''
     ### FREQUENCY ENCODING ###
@@ -57,17 +95,11 @@ def encode_categorical_values(data):
 
     ### ONE-HOT ENCODING ###
 
-    fuel_type = data[['fuel_type']]
-
-    cat_encoder = OneHotEncoder(sparse_output=False)
-    fuel_type_1hot = cat_encoder.fit_transform(fuel_type)
-
-    # Convert the OneHotEncoded Data to a DataFrame
-    fuel_type_1hot_df = pd.DataFrame(fuel_type_1hot, columns=cat_encoder.get_feature_names_out(['fuel_type']))
+    onehot_df = onehotencode_columns(data, ['fuel_type', 'transmission'])
 
     data_encoded = data
 
-    return data_encoded, target_encoded, fuel_type_1hot_df
+    return data_encoded, target_encoded, onehot_df
 
 
 
@@ -98,14 +130,32 @@ def combine_dataframes(data1, data2, data3):
 
     return data_processed
 
+
+
 if __name__ == "__main__":
     data = load_data('data/raw/train.csv')
+
+    # handle raw missing values
     handle_missing_values(data)
-    data_encoded, target_encoded, data_one_hot = encode_categorical_values(data)
-    feature_engineering(data_encoded)
-    scale_numerical_features(data_encoded)
-    scale_target_encoded_features(target_encoded)
-    data_processed = combine_dataframes(data_encoded, target_encoded, data_one_hot)
-    data_processed['price'].to_csv('data/processed/train_labels_processed_tar.csv', index=False)
-    data_processed.drop('price', axis=1, inplace=True)
-    data_processed.to_csv('data/processed/train_data_processed_tar.csv', index=False)
+
+    # add new features
+    featured_engineered = feature_engineering(data)
+
+    # impute missing values from feature engineered
+    impute_feature_engineered(featured_engineered)
+
+    # ensure there are no more missing features
+    featured_engineered.isna().sum()
+
+    # encode accident binary, target encode, and onehot encode 
+    data_encoded, target_encoded, data_one_hot = encode_categorical_values(featured_engineered)
+
+    # scale_numerical_features(data_encoded)
+
+    # scale_target_encoded_features(target_encoded)
+
+    # data_processed = combine_dataframes(data_encoded, target_encoded, data_one_hot)
+
+    data_one_hot['price'].to_csv('data/processed/train_labels_processed.csv', index=False)
+    data_one_hot.drop('price', axis=1, inplace=True)
+    data_one_hot.to_csv('data/processed/train_data_processed.csv', index=False)
