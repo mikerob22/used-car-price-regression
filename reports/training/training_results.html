@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Used Car Price Regression Results</title>
+
+        <style>
+            body {
+                font-family: 'Arial', sans-serif;
+                background-color: #f6f6f6;
+                margin: 0;
+                padding: 10px;
+            }
+    
+            h1 {
+                font-family: 'Georgia', serif;
+                color: #333333;
+            }
+    
+            p, li {
+                font-size: 16px;
+                color: #555555;
+            }
+    
+            div {
+                background-color: #ffffff;
+                border-radius: 8px;
+                padding: 20px;
+                margin: 20px 0;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+    
+            li {
+                margin-top: 5px;
+            }
+
+            .simpletable {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            .simpletable, .simpletable th, .simpletable td {
+                border: 1px solid #ddd;
+                padding: 8px;
+            }
+            .simpletable th {
+                background-color: #f2f2f2;
+                text-align: left;
+            }
+            
+            iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+            }
+
+    
+        </style>
+    </head>
+<body>
+
+<div>
+    <h1>Results from baseline model training - Linear Regression (OLS from statsmodels)</h1>
+
+    <p>
+        <table class="simpletable">
+            <caption>OLS Regression Results</caption>
+            <tr>
+              <th>Dep. Variable:</th>          <td>price</td>      <th>  R-squared:         </th>  <td>   0.166</td>  
+            </tr>
+            <tr>
+              <th>Model:</th>                   <td>OLS</td>       <th>  Adj. R-squared:    </th>  <td>   0.166</td>  
+            </tr>
+            <tr>
+              <th>Method:</th>             <td>Least Squares</td>  <th>  F-statistic:       </th>  <td>   3611.</td>  
+            </tr>
+            <tr>
+              <th>Date:</th>             <td>Tue, 10 Sep 2024</td> <th>  Prob (F-statistic):</th>   <td>  0.00</td>   
+            </tr>
+            <tr>
+              <th>Time:</th>                 <td>13:41:51</td>     <th>  Log-Likelihood:    </th> <td>-2.2817e+06</td>
+            </tr>
+            <tr>
+              <th>No. Observations:</th>      <td>181067</td>      <th>  AIC:               </th>  <td>4.563e+06</td> 
+            </tr>
+            <tr>
+              <th>Df Residuals:</th>          <td>181056</td>      <th>  BIC:               </th>  <td>4.563e+06</td> 
+            </tr>
+            <tr>
+              <th>Df Model:</th>              <td>    10</td>      <th>                     </th>      <td> </td>     
+            </tr>
+            <tr>
+              <th>Covariance Type:</th>      <td>nonrobust</td>    <th>                     </th>      <td> </td>     
+            </tr>
+            </table>
+            <table class="simpletable">
+            <tr>
+                    <td></td>          <th>coef</th>     <th>std err</th>      <th>t</th>      <th>P>|t|</th>  <th>[0.025</th>    <th>0.975]</th>  
+            </tr>
+            <tr>
+              <th>const</th>        <td> 4.355e+04</td> <td>  194.701</td> <td>  223.692</td> <td> 0.000</td> <td> 4.32e+04</td> <td> 4.39e+04</td>
+            </tr>
+            <tr>
+              <th>brand</th>        <td>  982.0673</td> <td>  222.973</td> <td>    4.404</td> <td> 0.000</td> <td>  545.045</td> <td> 1419.089</td>
+            </tr>
+            <tr>
+              <th>model</th>        <td> 6943.8261</td> <td>  323.490</td> <td>   21.465</td> <td> 0.000</td> <td> 6309.793</td> <td> 7577.859</td>
+            </tr>
+            <tr>
+              <th>model_year</th>   <td> 1622.9031</td> <td>  243.013</td> <td>    6.678</td> <td> 0.000</td> <td> 1146.604</td> <td> 2099.202</td>
+            </tr>
+            <tr>
+              <th>milage</th>       <td> 1.776e+04</td> <td>  237.456</td> <td>   74.802</td> <td> 0.000</td> <td> 1.73e+04</td> <td> 1.82e+04</td>
+            </tr>
+            <tr>
+              <th>fuel_type</th>    <td> -939.3568</td> <td>  172.164</td> <td>   -5.456</td> <td> 0.000</td> <td>-1276.795</td> <td> -601.919</td>
+            </tr>
+            <tr>
+              <th>engine</th>       <td> 8844.7072</td> <td>  333.397</td> <td>   26.529</td> <td> 0.000</td> <td> 8191.256</td> <td> 9498.159</td>
+            </tr>
+            <tr>
+              <th>transmission</th> <td> -536.1557</td> <td>  217.356</td> <td>   -2.467</td> <td> 0.014</td> <td> -962.169</td> <td> -110.143</td>
+            </tr>
+            <tr>
+              <th>ext_col</th>      <td> 2262.2390</td> <td>  196.806</td> <td>   11.495</td> <td> 0.000</td> <td> 1876.505</td> <td> 2647.973</td>
+            </tr>
+            <tr>
+              <th>int_col</th>      <td> 1073.1431</td> <td>  197.301</td> <td>    5.439</td> <td> 0.000</td> <td>  686.437</td> <td> 1459.849</td>
+            </tr>
+            <tr>
+              <th>accident</th>     <td>-1275.6713</td> <td>  424.493</td> <td>   -3.005</td> <td> 0.003</td> <td>-2107.669</td> <td> -443.674</td>
+            </tr>
+            </table>
+            <table class="simpletable">
+            <tr>
+              <th>Omnibus:</th>       <td>427913.231</td> <th>  Durbin-Watson:     </th>    <td>   2.005</td>   
+            </tr>
+            <tr>
+              <th>Prob(Omnibus):</th>   <td> 0.000</td>   <th>  Jarque-Bera (JB):  </th> <td>5004575587.148</td>
+            </tr>
+            <tr>
+              <th>Skew:</th>            <td>23.989</td>   <th>  Prob(JB):          </th>    <td>    0.00</td>   
+            </tr>
+            <tr>
+              <th>Kurtosis:</th>        <td>816.045</td>  <th>  Cond. No.          </th>    <td>    5.25</td>   
+            </tr>
+            </table><br/><br/>Notes:<br/>[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+    </p>
+
+    <p>
+        <li>'MSE': 5162646944.57</li>
+        <li>'RMSE': 71851.56</li> 
+        <li>'MAE': 20200.75</li> 
+        <li>'r2': 0.16626</li>
+        
+    </p>
+
+    <p>
+        Mean Squared Error (MSE): (5162646944.57) — average squared difference between observed and predicted prices.
+    </p>
+    <p>
+        Root Mean Squared Error (RMSE): (71851.56) — square root of MSE, provides a more interpretable metric as it is in the same unit as the dependent variable (price).
+    </p>
+    <p>
+        Mean Absolute Error (MAE): (20200.75) — average absolute difference between observed and predicted prices.
+    </p>
+    <p>
+        r2 (R-squared): (0.16626) — reaffirms the proportion of variance explained by the model.
+    </p>
+    <p>
+    Conclusion
+
+        <li>The model highlights statistically significant relationships between the predictors and the price of the used cars, but the relatively low R-squared suggests that there are other factors influencing car prices not captured by the model.</li>
+        <li>Residuals indicate non-normality, suggesting potential improvements could be made by exploring more sophisticated models or transforming variables.</li>
+    </p>
+
+</div>
+
+<div>
+    <h1>Results from model training - Random Forest Regressor (sklearn)</h1>
+    <p>
+        n_estimators:100
+    </p>
+
+    <p>
+        <li>'MSE': 1379435037.1291897</li>
+        <li>'RMSE': 37140.746318957965</li> 
+        <li>'MAE': 9445.152880431202</li> 
+        <li>'r2': 0.7772311547138399</li>
+        
+    </p>
+
+    <p>
+        Mean Squared Error (MSE): (1379435037.129) — This value indicates the average squared error between the predicted and true prices. While not directly interpretable in terms of actual car prices, lower MSE values correspond to better model performance.
+    </p>
+    <p>
+        Root Mean Squared Error (RMSE): (37140.746) — RMSE is more interpretable than MSE because it is in the same unit as the dependent variable, which is dollars in this case. An RMSE of (37,140.75) suggests that, on average, the predicted prices differ from the actual prices by about $37,140.75.
+    </p>
+    <p>
+        Mean Absolute Error (MAE): (9445.15288) —  MAE provides a measure of errors without considering their direction (i.e., positive or negative). An MAE of (9,445.15) indicates that, on average, the model's predictions are off by about $9,445.15. MAE is generally more interpretable than MSE or RMSE because it directly represents the average error.
+    </p>
+    <p>
+        r2 (R-squared): (0.77723) — An R² value of (0.7772) means that approximately 77.72% of the variance in used car prices can be explained by the features included in the Random Forest model. This is a significant improvement compared to the R² value from the OLS regression model, indicating that the Random Forest model fits the data much better.
+    </p>
+    <p>
+    Conclusion
+
+        <li>The Random Forest Regressor results indicate much better performance when compared to your OLS regression model. The R² value has increased from 0.166 to 0.7772, showing that the Random Forest model explains a much larger portion of the variance in used car prices.</li>
+        <li>The MAE and RMSE values (9,445.15 and 37,140.75, respectively) are much lower than the errors from the OLS model (MAE: 20,200.75 and RMSE: 71,851.56). This demonstrates that the Random Forest model offers more accurate predictions.</li>
+        <li>While the Random Forest Regressor is a more complex model and harder to interpret than a linear regression, it evidently captures the relationships between the features and the target variable (car price) more effectively.</li>
+    </p>
+
+</div>
+
+
+
+<div>
+    <h1>Testing Results Plot</h1>
+    <!-- Embed the Plotly plot using an iframe -->
+    <iframe src="file:///C:/Users/MJR0X3R/DataScienceProjects/imbalanced_project/reports/figures/testing/temp-plot.html"></iframe>
+</div>
+
+</body>
+</html>

@@ -5,6 +5,7 @@ from sklearn.ensemble import RandomForestRegressor
 import statsmodels.api as sm
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from joblib import dump
 
 train_data = pd.read_csv('data/processed/train_data_processed.csv', index_col=False)
 train_labels = pd.read_csv('data/processed/train_labels_processed.csv', index_col=False)
@@ -36,12 +37,12 @@ def linear_reg_model():
     print(f"r2: {r2}")
 
     # Print the summary of the OLS regression results
-    summary = model.summary()
-    print(summary)
+    summary = model.summary().as_html()
+    
 
     # Save the summary to a text file
-    with open('OLS_Regression_Summary.txt', 'w') as file:
-        file.write(summary.as_text())
+    with open('OLS_Regression_Summary.html', 'w') as file:
+        file.write(summary)
 
 
 ### ELASTIC NET REGRESSION MODEL W/ HYPERPARAMETER TUNING ###
@@ -107,6 +108,9 @@ def rf_regressor():
     print(f"Root Mean Squared Error: {rmse}")
     print(f"Mean Absolute Error: {mae}")
     print(f"r2: {r2}")
+
+    # Serialize baseline model to use for testing
+    dump(rf_model, 'src/models/serialized/rf_model.pkl')
 
 
 if __name__ == "__main__":

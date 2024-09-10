@@ -133,7 +133,7 @@ def combine_dataframes(data1, data2, data3):
 
 
 if __name__ == "__main__":
-    data = load_data('data/raw/train.csv')
+    data = load_data('data/raw/test.csv')
 
     # handle raw missing values
     handle_missing_values(data)
@@ -156,6 +156,6 @@ if __name__ == "__main__":
 
     # data_processed = combine_dataframes(data_encoded, target_encoded, data_one_hot)
 
-    data_one_hot['price'].to_csv('data/processed/train_labels_processed.csv', index=False)
+    data_one_hot['price'].to_csv('data/processed/test_labels_processed.csv', index=False)
     data_one_hot.drop('price', axis=1, inplace=True)
-    data_one_hot.to_csv('data/processed/train_data_processed.csv', index=False)
+    data_one_hot.to_csv('data/processed/test_data_processed.csv', index=False)
