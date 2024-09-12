@@ -6,12 +6,14 @@ import statsmodels.api as sm
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from joblib import dump
+from src.data.preprocessing import load_data, preprocess_data
 
-train_data = pd.read_csv('data/processed/train_data_processed.csv', index_col=False)
-train_labels = pd.read_csv('data/processed/train_labels_processed.csv', index_col=False)
 
-# train_data.drop('index', axis=1, inplace=True)
-train_labels = train_labels['price'] 
+# train_data = pd.read_csv('data/processed/train_data_processed.csv', index_col=False)
+# train_labels = pd.read_csv('data/processed/train_labels_processed.csv', index_col=False)
+
+# # train_data.drop('index', axis=1, inplace=True)
+# train_labels = train_labels['price'] 
 
 
 ### BASELINE LINEAR REGRESSION MODEL ###
@@ -89,7 +91,7 @@ def elastic_net_model():
 
 ### RANDOM FOREST REGRESSOR MODEL ###
 
-def rf_regressor():
+def train_rf_regressor(train_data, train_labels):
 
     # Initialize and train the Random Forest Regressor
     rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
@@ -114,16 +116,26 @@ def rf_regressor():
 
 
 if __name__ == "__main__":
-    # Identify columns with Inf values
-    columns_with_inf = train_data.columns[train_data.isin([np.inf, -np.inf]).any(axis=0)]
-    print("Columns with Inf values:")
-    print(columns_with_inf.tolist())
+    # # Identify columns with Inf values
+    # columns_with_inf = train_data.columns[train_data.isin([np.inf, -np.inf]).any(axis=0)]
+    # print("Columns with Inf values:")
+    # print(columns_with_inf.tolist())
 
-    # Identify rows with Inf values
-    rows_with_inf = train_data.index[train_data.isin([np.inf, -np.inf]).any(axis=1)]
-    print("\nRows with Inf values:")
-    print(rows_with_inf.tolist())
+    # # Identify rows with Inf values
+    # rows_with_inf = train_data.index[train_data.isin([np.inf, -np.inf]).any(axis=1)]
+    # print("\nRows with Inf values:")
+    # print(rows_with_inf.tolist())
 
-    # Showing DataFrame elements with Inf values marked
-    inf_elements = train_data.applymap(lambda x: "Inf" if np.isinf(x) else x)
-    print("\nDataFrame showing Inf values:\n", inf_elements)
+    # # Showing DataFrame elements with Inf values marked
+    # inf_elements = train_data.applymap(lambda x: "Inf" if np.isinf(x) else x)
+    # print("\nDataFrame showing Inf values:\n", inf_elements)
+
+    train_data = load_data('data/raw/train.csv')
+
+    processed_train_data = preprocess_data(train_data, train=True)
+
+    train_df = processed_train_data.drop('price', axis=1)
+    train_df.to_csv('data/processed/train_data_processed.csv')
+    train_labels = processed_train_data['price']
+    train_labels.to_csv('data/processed/train_labels_processed.csv')
+    train_rf_regressor(train_df, train_labels)

@@ -7,34 +7,48 @@ from sklearn.experimental import enable_iterative_imputer
 from sklearn.impute import IterativeImputer
 from src.features.feature_engineering import feature_engineering
 from category_encoders import TargetEncoder
-
+import joblib
 
 
 def load_data(filepath):
     # read in training data
-    data = pd.read_csv(filepath)
-    return data
+    return pd.read_csv(filepath)
 
 
-def handle_missing_values(data):
-    # drop columns 'clean_title' and 'id'
-    data.drop('clean_title', axis=1, inplace=True)
-    data.drop('id', axis=1, inplace=True)
+def handle_missing_values(data, train=True):
+    if not train:
+        # extract and save the 'id' column for later use
+        id_column = data['id'].copy()
+        # drop columns 'clean_title' and 'id'
+        data.drop(['clean_title', 'id'], axis=1, inplace=True)
     
+    else:
+        data.drop(['clean_title', 'id'], axis=1, inplace=True) 
     # Drop NaN rows where 'fuel_type' or 'accident' have missing values
     data.dropna(subset=['fuel_type', 'accident'], inplace=True)
 
+    if not train:
+        return data, id_column
 
-def impute_feature_engineered(data):
-    # Initialize Iterative Imputer
-    imputer = IterativeImputer(max_iter=10, random_state=42)
+    return data
 
-    # Apply imputation only on specified columns
+
+def impute_feature_engineered(data, imputer=None, train=True):
     columns_to_impute = ['horsepower', 'engine_size', 'power_to_weight_ratio']
-    data[columns_to_impute] = imputer.fit_transform(data[columns_to_impute])
+
+    if train:
+        # Initialize Iterative Imputer
+        imputer = IterativeImputer(max_iter=10, random_state=42)
+        # Apply imputation only on specified columns
+        data[columns_to_impute] = imputer.fit_transform(data[columns_to_impute])
+        joblib.dump(imputer, 'src/data/serialized/imputer.pkl')
+    else:
+        data[columns_to_impute] = imputer.transform(data[columns_to_impute])
+
+    return data
 
 
-def onehotencode_columns(data, columns):
+def onehotencode_columns(data, columns, encoder=None, train=True):
     """
     One-hot encodes the specified columns of the DataFrame.
 
@@ -45,22 +59,25 @@ def onehotencode_columns(data, columns):
     Returns:
     - pandas DataFrame with one-hot encoded columns
     """
+    if train:
+        # Initialize the OneHotEncoder
+        encoder = OneHotEncoder(sparse_output=False, drop='first')  # drop='first' to avoid multicollinearity
+        # Fit-transform the columns
+        encoded_cols = encoder.fit_transform(data[columns])
+        joblib.dump(encoder, 'src/data/serialized/onehot_encoder.pkl')
+    else:
+        encoded_cols = encoder.transform(data[columns])
     
-    # Initialize the OneHotEncoder
-    encoder = OneHotEncoder(sparse_output=False, drop='first')  # drop='first' to avoid multicollinearity
-    
-    # Fit-transform the columns and create a new DataFrame
-    encoded_cols = encoder.fit_transform(data[columns])
+    # Create DataFrame
     encoded_df = pd.DataFrame(encoded_cols, columns=encoder.get_feature_names_out(columns))
-    
     # Concatenate the original DataFrame with the encoded DataFrame
     data = data.drop(columns, axis=1)  # Drop the original columns
-    onehot_encoded_df = pd.concat([data.reset_index(drop=True), encoded_df], axis=1)
+    data = pd.concat([data.reset_index(drop=True), encoded_df], axis=1)
 
-    return onehot_encoded_df
+    return data, encoder
 
 
-def encode_categorical_values(data):
+def encode_categorical_values(data, target_column='price', encoder=None, train=True):
 
     # List of features to apply frequency or target encoding
     features_to_encode = ['brand', 'model', 'engine', 'ext_col', 'int_col']
@@ -81,25 +98,51 @@ def encode_categorical_values(data):
         'At least 1 accident or damage reported': 1
     })
     
-
-    ### TARGET ENCODING ###
-
-    # Initialize the target encoder
-    target_encoder = TargetEncoder(cols=features_to_encode, smoothing=0.3)
-    # Apply target encoding
-    target_encoded = target_encoder.fit_transform(data[features_to_encode], data['price'])
+    if train:
+        ### TARGET ENCODING ###
+        # Initialize the target encoder
+        encoder = TargetEncoder(cols=features_to_encode, smoothing=0.3)
+        # Apply target encoding
+        target_encoded = encoder.fit_transform(data[features_to_encode], data[target_column])
+        joblib.dump(encoder, 'src/data/serialized/target_encoder.pkl')
+    else:
+        target_encoded = encoder.transform(data[features_to_encode])
 
     # Drop the original categorical columns
     data.drop(features_to_encode, axis=1, inplace=True)
 
+    return data, target_encoded, encoder
 
-    ### ONE-HOT ENCODING ###
 
-    onehot_df = onehotencode_columns(data, ['fuel_type', 'transmission'])
+def preprocess_data(data, train=True):
+    if train:
+        data = handle_missing_values(data, train=train)
+    else:
+        data, id_column = handle_missing_values(data, train=train)
+        
+    data = feature_engineering(data)
+    # print("Data after feature engineering:", data)
 
-    data_encoded = data
+    if train:
+        data = impute_feature_engineered(data, train=train)
+        data, target_encoded, target_encoder = encode_categorical_values(data, train=train)
+        data, onehot_encoder = onehotencode_columns(data, ['fuel_type', 'transmission'], train=train)
+    else: 
+        imputer = joblib.load('src/data/serialized/imputer.pkl')
+        data = impute_feature_engineered(data, imputer=imputer, train=train)
+        target_encoder = joblib.load('src/data/serialized/target_encoder.pkl')
+        data, target_encoded, _ = encode_categorical_values(data, encoder=target_encoder, train=train)
+        onehot_encoder = joblib.load('src/data/serialized/onehot_encoder.pkl')
+        data, _ = onehotencode_columns(data, ['fuel_type', 'transmission'], encoder=onehot_encoder, train=train)
+    
+    if not train:
+        # Reset index for both id_column and processed data
+        id_column.reset_index(drop=True, inplace=True)
+        data.reset_index(drop=True, inplace=True)
+        # Combine the stored 'id' column with the processed data
+        data = pd.concat([id_column, data], axis=1)
 
-    return data_encoded, target_encoded, onehot_df
+    return data
 
 
 
@@ -133,29 +176,20 @@ def combine_dataframes(data1, data2, data3):
 
 
 if __name__ == "__main__":
+    # data = load_data('data/raw/train.csv')
+
+    # handle_missing_values(data, train=True)
+
+    # train_data_processed = preprocess_data(data, train=True)
+    from src.visualization.visualize import plot_missing_values
     data = load_data('data/raw/test.csv')
+    data, id_column = handle_missing_values(data, train=False)
+    
+    missing_value_counts = data.isna().sum()
+    plot_missing_values(missing_value_counts)
 
-    # handle raw missing values
-    handle_missing_values(data)
+    train_data_processed = preprocess_data(data, train=False)
 
-    # add new features
-    featured_engineered = feature_engineering(data)
 
-    # impute missing values from feature engineered
-    impute_feature_engineered(featured_engineered)
 
-    # ensure there are no more missing features
-    featured_engineered.isna().sum()
 
-    # encode accident binary, target encode, and onehot encode 
-    data_encoded, target_encoded, data_one_hot = encode_categorical_values(featured_engineered)
-
-    # scale_numerical_features(data_encoded)
-
-    # scale_target_encoded_features(target_encoded)
-
-    # data_processed = combine_dataframes(data_encoded, target_encoded, data_one_hot)
-
-    data_one_hot['price'].to_csv('data/processed/test_labels_processed.csv', index=False)
-    data_one_hot.drop('price', axis=1, inplace=True)
-    data_one_hot.to_csv('data/processed/test_data_processed.csv', index=False)

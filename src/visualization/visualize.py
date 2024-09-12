@@ -139,13 +139,17 @@ def contingency_tables(data):
 
 if __name__ == "__main__":
     data = load_data('data/raw/train.csv')
-    handle_missing_values(data)
-    feature_engineered = feature_engineering(data)
-    missing_value_counts = feature_engineered.isna().sum()
+    missing_value_counts = data.isna().sum()
     plot_missing_values(missing_value_counts)
-    plt.hist(feature_engineered['is_luxury_brand'])
-    feature_engineered.hist(figsize=(12, 8))
-    plot_price_by_fuel_type(feature_engineered)
-    numerical_correlations(feature_engineered)
-    contingency_tables(feature_engineered)
-    price_by_brand(feature_engineered)
+
+    data2 = load_data('data/raw/test.csv')
+    missing_value_counts2 = data2.isna().sum()
+    plot_missing_values(missing_value_counts2)
+    
+    data['fuel_type'].nunique()
+
+    data_filled = data.fillna({
+        'accident': 'Unknown',
+        'clean_title': 'Unknown'})
+
+    contingency_accident_title = pd.crosstab(data_filled['accident'], data_filled['clean_title'], margins=True)
