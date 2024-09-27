@@ -13,11 +13,21 @@ def test_rf_regressor(test_data):
     # Initialize and train the Random Forest Regressor
     rf_model = load('src/models/serialized/rf_model.pkl')
 
+    # Keep a copy of the 'id' column
+    ids = test_data['id']
+
+    test_data = test_data.drop(columns = ['id'])
 
     # Make predictions
     y_pred = rf_model.predict(test_data)
 
-    
+    submission_df = pd.DataFrame({
+    'id': ids,
+    'price': y_pred
+    })
+
+    # Step 4: Save the results to submission.csv
+    submission_df.to_csv('data/submission.csv', index=False)
     # Evaluate the model
     # mse = mean_squared_error(train_labels, y_pred)
     # rmse = np.sqrt(mse)
@@ -36,10 +46,6 @@ if __name__ == '__main__':
     test_data = load_data('data/raw/test.csv')
 
     processed_test_data = preprocess_data(test_data, train=False)
-
-    train_df = processed_train_data.drop('price', axis=1)
-    # train_df.to_csv('data/processed/train_data_processed.csv')
-    train_labels = processed_train_data['price']
-    # train_labels.to_csv('data/processed/train_labels_processed.csv')
     
+    test_rf_regressor(processed_test_data)
     

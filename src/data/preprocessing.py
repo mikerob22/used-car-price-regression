@@ -15,22 +15,59 @@ def load_data(filepath):
     return pd.read_csv(filepath)
 
 
+
+
 def handle_missing_values(data, train=True):
     if not train:
-        # extract and save the 'id' column for later use
+        # Extract and save the 'id' column for later use
         id_column = data['id'].copy()
-        # drop columns 'clean_title' and 'id'
-        data.drop(['clean_title', 'id'], axis=1, inplace=True)
-    
+        # Keep 'clean_title' for imputation process, drop 'id'
+        data.drop(['id'], axis=1, inplace=True)
     else:
-        data.drop(['clean_title', 'id'], axis=1, inplace=True) 
-    # Drop NaN rows where 'fuel_type' or 'accident' have missing values
-    data.dropna(subset=['fuel_type', 'accident'], inplace=True)
+        # Drop 'id' as it's not needed for training
+        data.drop(['id'], axis=1, inplace=True)
+
+    # Fill NaNs with placeholder for analysis and imputation
+    data_filled = data.fillna({
+        'accident': 'Unknown',
+        'clean_title': 'Unknown'
+    })
+
+    # Define imputation functions
+    def impute_clean_title(row):
+        if row['clean_title'] == 'Unknown' and row['accident'] == 'Unknown':
+            return 'no'
+        elif row['clean_title'] == 'Unknown':
+            return 'yes'  # Using the majority rule, assuming 'yes'
+        else:
+            return row['clean_title']
+
+    def impute_accident(row):
+        if row['clean_title'] == 'Unknown' and row['accident'] == 'Unknown':
+            return 'At least 1 accident or damage reported'
+        elif row['accident'] == 'Unknown':
+            return 'None reported'  # Assuming 'no accidents' for other unknowns
+        else:
+            return row['accident']
+
+    # Apply the imputation strategies
+    data['clean_title'] = data_filled.apply(impute_clean_title, axis=1)
+    data['accident'] = data_filled.apply(impute_accident, axis=1)
+
+    # Convert `clean_title` to binary (1 for 'yes', 0 for 'no')
+    data['clean_title'] = data['clean_title'].apply(lambda x: 1 if x == 'yes' else 0)
+
+    # Replace values in the 'accident' column to be binary
+    data['accident'] = data['accident'].map({
+        'None reported': 0,
+        'At least 1 accident or damage reported': 1
+    })
 
     if not train:
         return data, id_column
 
     return data
+
 
 
 def impute_feature_engineered(data, imputer=None, train=True):
@@ -91,12 +128,6 @@ def encode_categorical_values(data, target_column='price', encoder=None, train=T
         # Map frequencies to the original feature
         data[feature] = data[feature].map(freq_encoding)
     '''
-
-    # Replace values in the 'accident' column
-    data['accident'] = data['accident'].map({
-        'None reported': 0,
-        'At least 1 accident or damage reported': 1
-    })
     
     if train:
         ### TARGET ENCODING ###
@@ -176,19 +207,21 @@ def combine_dataframes(data1, data2, data3):
 
 
 if __name__ == "__main__":
-    # data = load_data('data/raw/train.csv')
+    data = load_data('data/raw/train.csv')
 
-    # handle_missing_values(data, train=True)
+    handle_missing_values(data, train=True)
 
-    # train_data_processed = preprocess_data(data, train=True)
+    train_data_processed = preprocess_data(data, train=True)
+    train_data_processed.to_csv('data/processed/train_data_processed.csv')
+
     from src.visualization.visualize import plot_missing_values
-    data = load_data('data/raw/test.csv')
-    data, id_column = handle_missing_values(data, train=False)
+    # data = load_data('data/raw/test.csv')
+    # data, id_column = handle_missing_values(data, train=False)
     
     missing_value_counts = data.isna().sum()
     plot_missing_values(missing_value_counts)
 
-    train_data_processed = preprocess_data(data, train=False)
+    # test_data_processed = preprocess_data(data, train=False)
 
 
 
